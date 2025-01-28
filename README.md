@@ -15,6 +15,34 @@ This project is a backend application designed as a practical guide for implemen
 - Minimal Setup: Only requires configuring the Docker environment and the PostgreSQL database.
 - Route Protection: Implements public and private routes to ensure access is only granted to authenticated users.
 
+### Endpoints
+
+Este CRUD de autenticación incluye las siguientes características:
+
+#### Registro de usuarios:
+
+1. Endpoint: POST /users
+
+Valida email único. Hashea la contraseña automáticamente
+
+#### Autenticación:
+
+2. Endpoint: POST /auth/login
+
+Devuelve un JWT token. Valida credenciales
+
+#### Operaciones CRUD protegidas:
+
+3. GET /users (protegido)
+4. GET /users/:id (protegido)
+5. DELETE /users/:id (protegido)
+
+#### Seguridad:
+
+1. Passwords hasheados con bcrypt
+2. JWT para autenticación
+3. Guards para proteger rutas
+
 ## Purpose:
 
 This app is designed to provide a solid foundation for building backend applications with authentication. It’s perfect for developers learning to work with NestJS or those needing a scalable, production-ready authentication system.
