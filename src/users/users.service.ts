@@ -16,16 +16,17 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
+    let userModel = { ...createUserDto, isAdmin: false, isActive: true };
+
     const existingUser = await this.usersRepository.findOne({
-      where: { email: createUserDto.email },
+      where: { email: userModel.email },
     });
 
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
-    const user = this.usersRepository.create(createUserDto);
-    user.isActive = true;
+    const user = this.usersRepository.create(userModel);
 
     return this.usersRepository.save(user);
   }
