@@ -17,21 +17,36 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
+import { UserLoginDto } from './dtos/user-login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create user' })
   @ApiResponse({
     status: 201,
     description: 'User created successfully',
-    type: User,
+    type: UserLoginDto,
   })
-  create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.usersService.createUser(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserLoginDto> {
+    const user = await this.usersService.createUser(createUserDto);
+    const payload = { email: user.email, sub: user.id };
+
+    const jwt = this.jwtService.sign(payload);
+
+    return {
+      id: user.id,
+      name: user.name,
+      jwt,
+    };
   }
 
   @Get()

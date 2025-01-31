@@ -14,11 +14,23 @@ export class User {
 
   @Column()
   @ApiProperty()
+  name: string;
+
+  @Column()
+  @ApiProperty()
+  lastname: string;
+
+  @Column()
+  @ApiProperty()
   password: string;
 
   @Column({ unique: true })
   @ApiProperty()
   isActive: boolean;
+
+  @Column({ unique: true })
+  @ApiProperty()
+  isAdmin: boolean;
 
   @BeforeInsert()
   async hashPassword() {
