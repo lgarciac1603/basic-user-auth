@@ -14,11 +14,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dtos/create-user.dto';
+import { CreateUserDto, ResponseCreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
-import { UserLoginDto } from './dtos/user-login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { LoginUserDto } from 'src/auth/dtos/login-user.dto';
+import { ResponseLoginUserDto } from './dtos/login-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -33,42 +34,44 @@ export class UsersController {
   @ApiResponse({
     status: 201,
     description: 'User created successfully',
-    type: UserLoginDto,
+    type: ResponseCreateUserDto,
   })
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserLoginDto> {
+  async create(
+    @Body() createUserDto: CreateUserDto,
+  ): Promise<ResponseCreateUserDto> {
     const user = await this.usersService.createUser(createUserDto);
 
     return {
       id: user.id,
-      name: user.name,
+      email: user.email,
       ok: true,
     };
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'Return all users', type: [User] })
-  findAll(): Promise<User[]> {
-    return this.usersService.findAll();
-  }
+  @Post('login')
+  @ApiOperation({ summary: 'Login user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User login successfully',
+    type: ResponseLoginUserDto,
+  })
+  async login(
+    @Body() loginUserDto: LoginUserDto,
+  ): Promise<ResponseLoginUserDto> {
+    const user = await this.usersService.findByEmail(
+      loginUserDto.email,
+      loginUserDto.password,
+    );
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user by id' })
-  @ApiResponse({ status: 200, description: 'Return found user', type: User })
-  findOne(@Param('id') id: string): Promise<User> {
-    return this.usersService.findOne(id);
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete user' })
-  @ApiResponse({ status: 200, description: 'User deleted successfully' })
-  remove(@Param('id') id: string): Promise<void> {
-    return this.usersService.remove(id);
+    const payload = { email: user.email, id: user.id, isAdmin: user.isAdmin };
+    const token = this.jwtService.sign(payload);
+    return {
+      id: user.id,
+      ok: true,
+      name: user.name,
+      lastname: user.lastname,
+      isAdmin: user.isAdmin,
+      token,
+    };
   }
 }

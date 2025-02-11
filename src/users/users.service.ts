@@ -2,11 +2,13 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -47,8 +49,18 @@ export class UsersService {
     return user;
   }
 
-  async findMyEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { email } });
+  async findByEmail(email: string, password: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Contraseña incorrecta');
+    }
+
+    return user;
   }
 
   async remove(id: string): Promise<void> {
