@@ -19,7 +19,6 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { UserLoginDto } from './dtos/user-login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 
 @ApiTags('users')
 @Controller('users')
@@ -38,14 +37,11 @@ export class UsersController {
   })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserLoginDto> {
     const user = await this.usersService.createUser(createUserDto);
-    const payload = { email: user.email, sub: user.id };
-
-    const jwt = this.jwtService.sign(payload);
 
     return {
       id: user.id,
       name: user.name,
-      jwt,
+      ok: true,
     };
   }
 

@@ -14,8 +14,8 @@ export class UserLoginDto {
   name: string;
 
   @ApiProperty({
-    description: 'Token JWT generado para el usuario',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'Success flag indicator',
+    example: 'true',
   })
-  jwt: string;
+  ok: boolean;
 }
