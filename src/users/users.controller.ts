@@ -1,25 +1,14 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { User } from './entities/user.entity';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto, ResponseCreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from 'src/auth/dtos/login-user.dto';
 import { ResponseLoginUserDto } from './dtos/login-user.dto';
+import {
+  ResponseTokenVerification,
+  TokenVerification,
+} from './dtos/token-verify.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -73,5 +62,32 @@ export class UsersController {
       isAdmin: user.isAdmin,
       token,
     };
+  }
+
+  @Post('/token')
+  @ApiOperation({ summary: 'Token validation' })
+  @ApiResponse({
+    status: 201,
+    description: 'Token validation',
+    type: ResponseTokenVerification,
+  })
+  async tokenValidation(
+    @Body() tokenVerification: TokenVerification,
+  ): Promise<ResponseTokenVerification> {
+    try {
+      const { id, token } = tokenVerification;
+      const user = await this.usersService.findOne(id);
+
+      if (user) {
+        const result = this.jwtService.verify(token);
+        if (result) {
+          return {
+            isValid: true,
+          };
+        }
+      }
+    } catch (error) {
+      throw new UnauthorizedException('Not valid token');
+    }
   }
 }
