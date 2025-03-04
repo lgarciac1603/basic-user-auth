@@ -64,7 +64,7 @@ export class UsersController {
     };
   }
 
-  @Post('/token')
+  @Post('token')
   @ApiOperation({ summary: 'Token validation' })
   @ApiResponse({
     status: 201,
