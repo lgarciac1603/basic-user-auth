@@ -1,14 +1,24 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto, ResponseCreateUserDto } from './dtos/create-user.dto';
-import { UsersService } from './users.service';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from './users.service';
+import { UserAuthGuard } from './guards/user.guard';
 import { LoginUserDto } from 'src/auth/dtos/login-user.dto';
 import { ResponseLoginUserDto } from './dtos/login-user.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreateUserDto, ResponseCreateUserDto } from './dtos/create-user.dto';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Post,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ResponseTokenVerification,
   TokenVerification,
 } from './dtos/token-verify.dto';
+import { DeleteUserDto, ResponseDeleteUserDto } from './dtos/delete-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -89,5 +99,30 @@ export class UsersController {
     } catch (error) {
       throw new UnauthorizedException('Not valid token');
     }
+  }
+
+  @Delete()
+  @UseGuards(UserAuthGuard)
+  @ApiOperation({ summary: 'Delete user account' })
+  @ApiResponse({
+    status: 201,
+    description: 'Delete user',
+    type: ResponseDeleteUserDto,
+  })
+  async deleteUser(
+    @Body() deleteUser: DeleteUserDto,
+  ): Promise<ResponseDeleteUserDto> {
+    const { email, password } = deleteUser;
+    console.log(email, password);
+
+    if (!email || !password) {
+      throw new BadRequestException('Request error');
+    }
+
+    const { id } = await this.usersService.findByEmail(email, password);
+    const response = await this.usersService.remove(id);
+
+    console.log(response);
+    return { ok: true, code: 201 };
   }
 }
